@@ -185,8 +185,7 @@ async def vv(event):
             await client.send_file(
                 event.chat_id,
                 file,
-                caption="view-once media saved\n\n
-                `POWERED BY DARX TECH`",
+                caption = "view-once media saved\n\n`POWERED BY DARX TECH`",
                 force_document=False
             )
             await event.respond("`ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀʀx ᴛᴇᴄʜ`.")
