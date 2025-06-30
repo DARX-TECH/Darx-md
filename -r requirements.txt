@@ -1,0 +1,13 @@
+python-telegram-bot
+
+pyTelegramBotAPI
+
+telethon
+
+pyrogram
+tgcrypto
+
+requests
+python-dotenv
+flask
+
