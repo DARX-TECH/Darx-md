@@ -13,6 +13,7 @@ api_hash = '3a12a02f9791a329acad1415d0f8eb7d'
 OWNER_ID = 7050438297  # change to your own id
 
 client = TelegramClient('darx_md_session', api_id, api_hash)
+client.start(phone='+2349043566732')
 
 start_time = time.time()
 
