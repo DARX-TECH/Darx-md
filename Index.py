@@ -8,16 +8,14 @@ from telethon.tl.functions.messages import DeleteMessagesRequest
 from telethon.tl.types import PeerUser, PeerChannel
 from telethon.errors.rpcerrorlist import UserPrivacyRestrictedError
 
-# Your API credentials from my.telegram.org
 api_id = 27439390
 api_hash = '3a12a02f9791a329acad1415d0f8eb7d'
-OWNER_ID = 7050438297  # Your Telegram user ID for owner-only commands
+OWNER_ID = 7050438297  # change to your own id
 
 client = TelegramClient('darx_md_session', api_id, api_hash)
 
 start_time = time.time()
 
-# Simple owner-only decorator
 def owner_only(func):
     async def wrapper(event):
         if event.sender_id != OWNER_ID:
@@ -25,7 +23,6 @@ def owner_only(func):
             return
         await func(event)
     return wrapper
-# Helper for uptime formatting
 def get_readable_time(seconds: int) -> str:
     result = ""
     time_units = [("w", 604800), ("d", 86400), ("h", 3600), ("m", 60), ("s", 1)]
@@ -36,14 +33,12 @@ def get_readable_time(seconds: int) -> str:
             result += f"{amount}{unit} "
     return result.strip()
 
-# Helper for mention formatting
 def format_mention(user):
     return f"[{user.first_name}](tg://user?id={user.id})"
 
-# --------- /start command ----------
 @client.on(events.NewMessage(pattern='/start'))
+@owner_only
 async def start(event):
-    # Send photo + welcome text
     text = (f"**ᴡᴀɢᴡᴀɴ {format_mention(await event.get_sender())} ɪ ᴀᴍ ᴛʜᴇ ᴅᴀʀx ᴍᴅ ʙᴏᴛ\n\n**"
             "`INFO: ʙᴏᴛ ᴄᴀɴ ʙᴇ ᴀᴅᴅᴇᴅ ᴛᴏ ɢʀᴏᴜᴘs/ᴄʜᴀɴɴᴇʟs ᴀs ᴀᴅᴍɪɴ`\n\n"
             "ᴛʏᴘᴇ /menu ᴛᴏ sᴇᴇ ᴏᴘᴛɪᴏɴs")
@@ -57,15 +52,14 @@ async def start(event):
             parse_mode='md'
         )
  
-# --------- /menu command ----------
 @client.on(events.NewMessage(pattern='/menu'))
+@owner_only
 async def menu(event):
     now = datetime.now()
     uptime_sec = int(time.time() - start_time)
     uptime = get_readable_time(uptime_sec)
-    commands_count = 40  # Change to your actual command count
+    commands_count = 40 
     nigeria_tz = 'Africa/Lagos'
-    # Nigeria time and date
     nigeria_time = now.strftime('%H:%M:%S')
     nigeria_date = now.strftime('%Y-%m-%d')
 
@@ -113,8 +107,8 @@ async def menu(event):
     except Exception as e:
         await event.respond(f"⚠️ Failed to send menu: `{e}`")
 
-# --------- OWNER MENU ---------
 @client.on(events.NewMessage(pattern='/ownermenu'))
+@owner_only
 async def owner_menu(event):
     text = ("╭────────═━⊷⊷━═──━⊷\n"
             "│     ⌘ 𝐎𝐖𝐍𝐄𝐑 𝐌𝐄𝐍𝐔 ⌘\n"
@@ -132,10 +126,9 @@ async def owner_menu(event):
         caption=text,
         buttons=[[Button.url("VIEW CHANNEL", "https://t.me/darxtechs")]]
         )
-
-
-# --------- /uptime command ----------
+        
 @client.on(events.NewMessage(pattern=r'^/uptime$'))
+@owner_only
 async def uptime(event):
     total_seconds = int(time.time() - start_time)
     hours, remainder = divmod(total_seconds, 3600)
@@ -144,8 +137,8 @@ async def uptime(event):
     uptime_str = f"{hours}h {minutes}m {seconds}s"
     await event.respond(f"`⏱ DARX-MD has been running for {uptime_str}`")
 
-# --------- /block command ----------
 @client.on(events.NewMessage(pattern='/block'))
+@owner_only
 async def block(event):
     if not event.is_reply:
         return await event.respond("Reply to a user to block.")
@@ -156,8 +149,8 @@ async def block(event):
     except Exception as e:
         await event.respond(f"Failed to block: {str(e)}")
 
-# --------- /unblock command ----------
 @client.on(events.NewMessage(pattern='/unblock'))
+@owner_only
 async def unblock(event):
     if not event.is_reply:
         return await event.respond("Reply to a user to unblock.")
@@ -168,8 +161,8 @@ async def unblock(event):
     except Exception as e:
         await event.respond(f"Failed to unblock: {str(e)}")
 
-# --------- /del command ----------
 @client.on(events.NewMessage(pattern=r'^/del$'))
+@owner_only
 async def delete_msg(event):
     if not event.is_reply:
         return await event.respond("Reply to a message or text.")
@@ -177,8 +170,8 @@ async def delete_msg(event):
     await msg.delete()
     await event.delete()
 
-# --------- /vv command ----------
 @client.on(events.NewMessage(pattern=r'^/vv$'))
+@owner_only
 async def vv(event):
     if not event.is_reply:
         return await event.respond("❌ Reply to a view-once photo / video.")
@@ -187,14 +180,13 @@ async def vv(event):
 
     if reply.media and (reply.photo or reply.video):
         try:
-            # Download the view-once media
             file = await client.download_media(reply.media)
             
-            # Re-upload it as normal media
             await client.send_file(
                 event.chat_id,
                 file,
-                caption="✅ Saved from view-once",
+                caption="view-once media saved\n\n
+                `POWERED BY DARX TECH`",
                 force_document=False
             )
             await event.respond("`ᴘᴏᴡᴇʀᴇᴅ ʙʏ ᴅᴀʀx ᴛᴇᴄʜ`.")
@@ -203,8 +195,8 @@ async def vv(event):
     else:
         await event.respond("❌ That’s not a view-once photo / video.")
 
-# --------- /getpp command ----------
 @client.on(events.NewMessage(pattern='/getpp'))
+@owner_only
 async def getpp(event):
     if not event.is_reply:
         return await event.respond("Reply to a user to get their profile picture.")
@@ -217,10 +209,9 @@ async def getpp(event):
     except Exception as e:
         await event.respond(f"Failed: {str(e)}")
 
-# --------- /vcd command ---------
 @client.on(events.NewMessage(pattern=r'^/vcd$'))
+@owner_only
 async def vcd(event):
-    # Example: send your own contact vCard
     me = await client.get_me()
     vcard = (
         "BEGIN:VCARD\n"
@@ -233,8 +224,8 @@ async def vcd(event):
     await event.respond(f"Here is your vCard:\n```\n{vcard}\n```")
     
 
-# --------- GROUP MENU ---------
 @client.on(events.NewMessage(pattern='/groupmenu'))
+@owner_only
 async def group_menu(event):
     text = ("╭────────═━⊷⊷━═──━⊷\n"
             "│     ⌘ 𝐆𝐑𝐎𝐔𝐏 𝐌𝐄𝐍𝐔 ⌘\n"
@@ -266,8 +257,8 @@ async def group_menu(event):
         buttons=[[Button.url("VIEW CHANNEL", "https://t.me/darxtechs")]]
         )
 
-# --------- /tagall command ----------
 @client.on(events.NewMessage(pattern='/tagall'))
+@owner_only
 async def tagall(event):
     if not event.is_group:
         return await event.respond("This command works only in groups.")
@@ -279,8 +270,8 @@ async def tagall(event):
     text += "╰────────═━┈━═──━┈⊷"
     await event.respond(text, parse_mode='md')
 
-# --------- /lock command ----------
 @client.on(events.NewMessage(pattern='/lock'))
+@owner_only
 async def lock(event):
     if not event.is_group:
         return await event.respond("Use this command in groups only.")
@@ -290,8 +281,8 @@ async def lock(event):
     except Exception as e:
         await event.respond(f"Failed to lock group: {str(e)}")
 
-# --------- /unlock command ----------
 @client.on(events.NewMessage(pattern='/unlock'))
+@owner_only
 async def unlock(event):
     if not event.is_group:
         return await event.respond("Use this command in groups only.")
@@ -301,8 +292,8 @@ async def unlock(event):
     except Exception as e:
         await event.respond(f"Failed to unlock group: {str(e)}")
 
-# --------- /promote command ----------
 @client.on(events.NewMessage(pattern=r'^/promote$'))
+@owner_only
 async def promote(event):
     user = await get_target_user(event)
     if not user:
@@ -329,9 +320,8 @@ async def promote(event):
     except Exception as e:
         await event.respond(f"Failed to promote: {e}")
 
-# --------- /demote command ----------
-
 @client.on(events.NewMessage(pattern=r'^/demote$'))
+@owner_only
 async def demote(event):
     user = await get_target_user(event)
     if not user:
@@ -358,8 +348,8 @@ async def demote(event):
     except Exception as e:
         await event.respond(f"Failed to demote: {e}")
         
-        # ---- /kickall command ----
 @client.on(events.NewMessage(pattern=r'^/kickall$'))
+@owner_only
 async def kickall(event):
     if not event.is_group:
         return await event.respond("This command only works in groups.")
@@ -374,9 +364,9 @@ async def kickall(event):
                 pass
     await event.respond(f"Kicked {count} users.")
     
-    # ----- /kickinactive command -----
     
 @client.on(events.NewMessage(pattern='/kickinactive'))
+@owner_only
 async def kickinactive_handler(event):
     if not event.is_group:
         await event.respond("This command is only for groups.")
@@ -385,7 +375,6 @@ async def kickinactive_handler(event):
     me = await client.get_me()
     chat = await event.get_input_chat()
 
-    # Check if bot is admin
     try:
         permissions = await client.get_permissions(chat, me.id)
         if not permissions.is_admin:
@@ -412,7 +401,6 @@ async def kickinactive_handler(event):
         await event.respond("No inactive members found.")
         return
 
-    # Show who will be kicked
     boxed_mentions = [f"│⊷ @{u.username}" if u.username else f"│⊷ {u.first_name}" for u in inactive_users]
     boxed_text = (
         "╭────────═━⊷⊷━═──━⊷\n"
@@ -422,18 +410,16 @@ async def kickinactive_handler(event):
     )
     await event.respond(boxed_text)
 
-    # Kick each inactive member
     for user in inactive_users:
         try:
             await client.kick_participant(event.chat_id, user.id)
-            await asyncio.sleep(1)  # avoid flood
+            await asyncio.sleep(1)
         except:
             continue
-        
-        
-        # === BOT MENU COMMANDS ===
+      
 
 @client.on(events.NewMessage(pattern=r'^/botmenu$'))
+@owner_only
 async def botmenu(event):
     text = (
         "╭────────═━⊷⊷━═──━⊷\n"
@@ -456,8 +442,8 @@ async def botmenu(event):
         buttons=[[Button.url("VIEW CHANNEL", "https://t.me/darxtechs")]]
         )
 
-# --------- /ping command ----------
 @client.on(events.NewMessage(pattern=r'^/ping$'))
+@owner_only
 async def ping(event):
     start = time.time()
     msg = await event.respond("Pong...")
@@ -465,10 +451,9 @@ async def ping(event):
     ms = int((end - start)*1000)
     await msg.edit(f"Pong! `{ms} ms`")
     
-    
-# ------ /sticker command ------
 
 @client.on(events.NewMessage(pattern=r'^/sticker$'))
+@owner_only
 async def sticker(event):
     if not event.is_reply:
         return await event.respond("Reply to a photo.")
@@ -479,23 +464,20 @@ async def sticker(event):
     await client.send_file(event.chat_id, reply.sticker, force_document=False, voice_note=False)
     await event.delete()
 
-# ------- /translate command --------
 
 @client.on(events.NewMessage(pattern=r'^/translate (.+)'))
+@owner_only
 async def translate(event):
-    # Dummy translate command - requires integration with translation API (Google, DeepL)
     text_to_translate = event.pattern_match.group(1)
-    # Just echo for now:
     await event.respond(f"Translation (stub): {text_to_translate}")
 
 @client.on(events.NewMessage(pattern=r'^/ai (.+)'))
+@owner_only
 async def ai(event):
     prompt = event.pattern_match.group(1)
-    # Dummy AI reply - you can plug OpenAI or any other model here
     response = f"AI Response to: {prompt}"
     await event.respond(response)
 
-# ------ /kill command ------
 
 @client.on(events.NewMessage(pattern=r'^/kill$'))
 @owner_only
@@ -507,20 +489,19 @@ async def kill(event):
 
 
 @client.on(events.NewMessage(pattern=r'^/img (.+)'))
+@owner_only
 async def img(event):
     query = event.pattern_match.group(1)
     await event.respond(f"Searching image for: {query} (stub)")
 
 @client.on(events.NewMessage(pattern=r'^/channel$'))
 async def channel(event):
-    # Just example: get channels you admin
     dialogs = await client.get_dialogs()
     channels = [d.name for d in dialogs if d.is_channel and (d.is_admin or d.is_creator)]
     await event.respond("Channels you admin:\n" + "\n".join(channels))
 
-# === OTHER MENU COMMANDS ===
-
 @client.on(events.NewMessage(pattern='/othermenu'))
+@owner_only
 async def other_menu(event):
     text = ("╭────────═━⊷⊷━═──━⊷\n"
             "│     ⌘ 𝐎𝐓𝐇𝐄𝐑 𝐌𝐄𝐍𝐔 ⌘\n"
@@ -540,35 +521,33 @@ async def other_menu(event):
         )
 
 @client.on(events.NewMessage(pattern=r'^/yt (.+)'))
+@owner_only
 async def yt(event):
     url = event.pattern_match.group(1)
-    # Stub: pretend to download YouTube video
     await event.respond(f"Downloading YouTube video from: {url} (stub)")
 
 @client.on(events.NewMessage(pattern=r'^/tt (.+)'))
+@owner_only
 async def tt(event):
     url = event.pattern_match.group(1)
-    # Stub: pretend to download TikTok video
     await event.respond(f"Downloading TikTok video from: {url} (stub)")
 
 @client.on(events.NewMessage(pattern=r'^/mp3 (.+)'))
+@owner_only
 async def mp3(event):
     url = event.pattern_match.group(1)
-    # Stub: pretend to download audio from link
     await event.respond(f"Downloading MP3 from: {url} (stub)")
 
 @client.on(events.NewMessage(pattern=r'^/ig (.+)'))
+@owner_only
 async def ig(event):
     url = event.pattern_match.group(1)
-    # Stub: pretend to download Instagram video or photo
     await event.respond(f"Downloading Instagram media from: {url} (stub)")
 
 
-# Helper function for mention formatting
 def format_mention(user):
     return f"[{user.first_name}](tg://user?id={user.id})"
 
-# Start client
 print("starting bot...")
 client.start()
 print("darx-md is now running")
